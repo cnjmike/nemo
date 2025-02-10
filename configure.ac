@@ -246,7 +246,7 @@ AC_ARG_WITH(dso,
 AC_ARG_WITH(opt, 
 		  [  --with-opt              use opt for essentials], with_opt=$withval, with_opt=no)
 AC_ARG_WITH(openmp,
-		  [  --with-openmp           use OMP directives], with_openmp=$withval, with_openmp=no)
+		  [  --with-openmp           use OMP directives; mac/clang only: path to libomp ], with_openmp=$withval, with_openmp=no)
 
 AC_ARG_WITH(std,
 		  [  --with-std              use this -std=], with_std=$withval, with_std=c99)
@@ -258,15 +258,43 @@ else
 fi
 AC_SUBST(STDFLAG)
 
-if test $with_openmp = "yes"; then
-  CFLAGS="$CFLAGS -fopenmp"
-  CXXFLAGS="$CXXFLAGS -fopenmp"
-  FFLAGS="$CFLAGS -fopenmp"
+OPENMP_CXXFLAGS=""
+OPENMP_LINKFLAGS=""
+falcon_OPENMP="noOPENMP"
+if test $with_openmp != "no"; then
   falcon_OPENMP="OPENMP"
-else
-  falcon_OPENMP="noOPENMP"
+  if ${CC} --version | grep -q "clang"; then
+    AC_MSG_CHECKING([whether we have a valid libomp path])
+    if ! (test -d "$with_openmp/lib" && test -d "$with_openmp/include"); then
+      AC_MSG_WARN([No libomp path])
+      echo "*********************************************************************************"
+      echo " You are compiling on clang (either directly or because you're on OS X)"
+      echo " and included a --with-openmp option, but did not provide a path to a "
+      echo " valid libomp install. Unlike other c compilers, clang does not include"
+      echo " libomp.  You'll need to install libomp yourself with something like brew."
+      echo " Note also that brew will not symlink libomp from within /usr/*/lib, citing"
+      echo " possible damage to the OS.  You'll need to know the path to the parent"
+      echo " dir of include/libomp.h and lib/libomp.* and provide it with the --with-openmp"
+      echo " option, e.g.:"
+      echo "      /.configure [...] --with-openmp=~/mybrew/Cellar/libomp/18.0.1"
+      echo "*********************************************************************************"
+    else
+      AC_MSG_RESULT([yes])
+      OPENMP_CXXFLAGS="-Xclang -fopenmp -I$with_openmp/include "
+      OPENMP_LINKFLAGS="-L$with_openmp/lib -lomp "
+    fi
+  else
+    OPENMP_CXXFLAGS="-fopenmp"
+  fi
 fi
 AC_SUBST(falcon_OPENMP)
+AC_SUBST(OPENMP_CXXFLAGS)
+AC_SUBST(OPENMP_LINKFLAGS)
+falcon_OPENMP_CXXFLAGS="$OPENMP_CXXFLAGS"
+falcon_OPENMP_LINKFLAGS="$OPENMP_LINKFLAGS"
+AC_SUBST(falcon_OPENMP_CXXFLAGS)
+AC_SUBST(falcon_OPENMP_LINKFLAGS)
+
 
 dnl ---------------------------------------------------------------------
 dnl             Check for basic X windows stuff : AC_PATH_XTRA -> X_CFLAGS and X_LIBS

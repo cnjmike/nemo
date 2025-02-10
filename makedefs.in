@@ -78,6 +78,11 @@ GSL_LIB =
 PLPLOT_INC = @PLPLOT_CFLAGS@
 PLPLOT_LIB = @PLPLOT_LIBS@
 
+# OPENMP
+OPENMP_CXXFLAGS=@OPENMP_CXXFLAGS@
+OPENMP_LINKFLAGS=@OPENMP_LINKFLAGS@
+
+
 #	FFTW
 #       -lfftw3, or -lfftw3f or -lfftw3l (depending on precision library, for float or long double)
 #       [actually still not used yet]
@@ -149,10 +154,10 @@ LOPT = @LDFLAGS@
 #   for shared libaries
 CCSHARED = @CCSHARED@
 #   everything 
-CFLAGS   = $(COPT) $(CCSHARED) $(NEMO_CFLAGS) $(PFLAGS)  @STDFLAG@
-CXXFLAGS = $(COPT) $(CCSHARED) $(NEMO_CFLAGS)
+CFLAGS   = $(COPT) $(CCSHARED) $(NEMO_CFLAGS) $(PFLAGS) $(OPENMP_CXXFLAGS) @STDFLAG@
+CXXFLAGS = $(COPT) $(CCSHARED) $(NEMO_CFLAGS) $(OPENMP_CXXFLAGS)
 FFLAGS   = $(FOPT) $(CCSHARED) $(NEMO_FFLAGS)
-LDFLAGS  = $(LOPT)             $(NEMO_LDFLAGS)
+LDFLAGS  = $(LOPT)             $(NEMO_LDFLAGS) $(OPENMP_LIBFLAGS)
 CPPFLAGS = @CPPFLAGS@
 
 RANLIB = @RANLIB@
