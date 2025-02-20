@@ -691,6 +691,10 @@ X_PRE_LIBS
 X_CFLAGS
 CPP
 XMKMF
+falcon_OPENMP_LINKFLAGS
+falcon_OPENMP_CXXFLAGS
+OPENMP_LINKFLAGS
+OPENMP_CXXFLAGS
 falcon_OPENMP
 STDFLAG
 MAKEDIRS
@@ -1492,7 +1496,7 @@ Optional Packages:
   --with-ccmalloc         use CCMALLOC for malloc
   --with-dso              use DSO linking
   --with-opt              use opt for essentials
-  --with-openmp           use OMP directives
+  --with-openmp           use OMP directives; mac/clang only: path to libomp
   --with-std              use this -std=
   --with-x                use the X Window System
   --with-pgplot-prefix=DIR   Directory where PGPLOT was installed, aka PGPLOT_DIR
@@ -6763,14 +6767,45 @@ else
 fi
 
 
-if test $with_openmp = "yes"; then
-  CFLAGS="$CFLAGS -fopenmp"
-  CXXFLAGS="$CXXFLAGS -fopenmp"
-  FFLAGS="$CFLAGS -fopenmp"
+OPENMP_CXXFLAGS=""
+OPENMP_LINKFLAGS=""
+falcon_OPENMP="noOPENMP"
+if test $with_openmp != "no"; then
   falcon_OPENMP="OPENMP"
-else
-  falcon_OPENMP="noOPENMP"
+  if ${CC} --version | grep -q "clang"; then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether we have a valid libomp path" >&5
+printf %s "checking whether we have a valid libomp path... " >&6; }
+    if ! (test -d "$with_openmp/lib" && test -d "$with_openmp/include"); then
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: No libomp path" >&5
+printf "%s\n" "$as_me: WARNING: No libomp path" >&2;}
+      echo "*********************************************************************************"
+      echo " You are compiling on clang (either directly or because you're on OS X)"
+      echo " and included a --with-openmp option, but did not provide a path to a "
+      echo " valid libomp install. Unlike other c compilers, clang does not include"
+      echo " libomp.  You'll need to install libomp yourself with something like brew."
+      echo " Note also that brew will not symlink libomp from within /usr/*/lib, citing"
+      echo " possible damage to the OS.  You'll need to know the path to the parent"
+      echo " dir of include/libomp.h and lib/libomp.* and provide it with the --with-openmp"
+      echo " option, e.g.:"
+      echo "      /.configure ... --with-openmp=~/mybrew/Cellar/libomp/18.0.1"
+      echo "*********************************************************************************"
+    else
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+      OPENMP_CXXFLAGS="-Xclang -fopenmp -I$with_openmp/include "
+      OPENMP_LINKFLAGS="-L$with_openmp/lib -lomp "
+    fi
+  else
+    OPENMP_CXXFLAGS="-fopenmp"
+  fi
 fi
+
+
+
+falcon_OPENMP_CXXFLAGS="$OPENMP_CXXFLAGS"
+falcon_OPENMP_LINKFLAGS="$OPENMP_LINKFLAGS"
+
+
 
 
 ac_ext=c

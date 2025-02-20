@@ -99,9 +99,9 @@ CXXFLAGS	:= $(STDAPI) $(OPTFLAGS)
 endif
 
 ifdef OPENMP
-CXXFLAGS	+= -fopenmp
-CFLAGS		+= -fopenmp
-LDFLAGS		:= -shared -fopenmp $(PROFLAGS)
+CXXFLAGS	+=  $(OPENMP_CXXFLAGS)
+CFLAGS		+=  $(OPENMP_CXXFLAGS)
+LDFLAGS		:= -shared  $(OPENMP_CXXFLAGS) $(PROFLAGS)
 else
 LDFLAGS		:= -shared $(PROFLAGS)
 endif

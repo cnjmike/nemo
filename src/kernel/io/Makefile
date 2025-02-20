@@ -109,7 +109,7 @@ endian: endian.c
 	$(CC) $(CFLAGS) -DTOOLBOX -o endian endian.c $(NEMO_LIBS)
 
 getpartest: getparam.c
-	$(CC) $(CFLAGS) -o getpartest -DTESTBED getparam.c $(NEMO_LIBS)
+	$(CC) $(CFLAGS) $(OPENMP_CXXFLAGS) -o getpartest -DTESTBED getparam.c $(NEMO_LIBS) $(OPENMP_LINKFLAGS)
 
 stropentest: stropen.c
 	$(CC) $(CFLAGS) -o stropentest -DTESTBED stropen.c $(NEMO_LIBS)

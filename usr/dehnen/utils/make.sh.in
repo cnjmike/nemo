@@ -8,6 +8,8 @@ NO_ARCH_NATIVE=@falcon_NO_NATIVE@
 
 # if you want --fopenmp it should say "OPENMP=1"
 @falcon_OPENMP@=1
+OPENMP_CXXFLAGS=@falcon_OPENMP_CXXFLAGS@
+OPENMP_LINKFLAGS=@falcon_OPENMP_LINKFLAGS@
 
 # do or don't do shared libs. by default no, because of SIP on mac
 NO_SHARED_LIBS=@NO_SHARED_LIBS@

@@ -62,7 +62,7 @@ $(LIBT)			:
 # ---------
 
 INCLUDE			:= -I$(INC)
-LINKLIBS		+= $(CXXLIBS)
+LINKLIBS		+= $(CXXLIBS) $(OPENMP_LINKFLAGS)
 
 # math lib
 ifndef MATHLIB

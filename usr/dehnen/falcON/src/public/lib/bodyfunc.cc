@@ -35,6 +35,7 @@
 #include <sstream>
 #include <cstring>
 #include <cstdlib>
+#include <limits>
 
 using namespace falcON;
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,8 +155,8 @@ namespace {
     // compiles a falcON C++ program in fname using compiler flags              
     const char* falcON_path = falcON::directory();
     if(falcON_path == 0) throw BfErr("cannot locate falcON directory");
-    char cmmd[512];
-    SNprintf(cmmd,512,"cd /tmp; %s %s.cc -o %s.so"
+    char cmmd[PATH_MAX];
+    SNprintf(cmmd,PATH_MAX,"cd /tmp; %s %s.cc -o %s.so"
 	     " %s -shared -fPIC -I%s/inc -I%s/inc/utils -O2"
 #if __cplusplus >= 201103L
 	     " -std=c++0x"
@@ -172,14 +173,20 @@ namespace {
 	     " -DfalcON_SINGLE"
 #endif
 #if   defined(__INTEL_COMPILER)
-	     " -ip -xHost -fpic -falign-functions -openmp -g -Wall"
-
+	     " -ip -xHost -fpic -falign-functions -g -Wall"
+#     if "x$OPENMP" != "x"
+         " -openmp"
+#     endif
 	     // 	     	     " -march=native -mfpmath=sse -mpreferred-stack-boundary=4 -ggdb3"
+#elif defined(__clang__)
+	 " -mfpmath=sse -ggdb3"
+     " -Wall -Wextra -Winit-self -Wshadow -Woverloaded-virtual -fPIC"
+     " -std=c++11 -funroll-loops -fforce-addr $OPENMP_CXXFLAGS $OPENMP_LINKFLAGS"
 #elif defined(__GNUC__)
 	     " -mfpmath=sse -mpreferred-stack-boundary=4 -ggdb3"
 	     " -Wall -Wextra -Winit-self -Wshadow -Woverloaded-virtual -fPIC"
 	     " -std=c++11"
-	     " -fopenmp -funroll-loops -fforce-addr"
+	     " $OPENMP_CXXFLAGS -funroll-loops -fforce-addr $OPENMP_LINKFLAGS"
 #else
 	     " -fpic -openmp -g"
 #endif
@@ -193,8 +200,8 @@ namespace {
     if(system(cmmd)) {
       if(debug(debug_depth)) {
 	std::cerr<<"could not compile temporary file /tmp/"<<fname<<".cc:\n";
-	char show[512];
-	SNprintf(show,512,"more /tmp/%s.cc > /dev/stderr",fname);
+	char show[PATH_MAX];
+	SNprintf(show,PATH_MAX,"more /tmp/%s.cc > /dev/stderr",fname);
   int rr;
 	rr=system(show);
 	std::cerr<<"\nwith the command\n\""<<cmmd<<"\".\n"
@@ -211,8 +218,8 @@ namespace {
   inline void delete_files(const char*fname) {
     // delete files /tmp/fname.* UNLESS debug(debug_depth)
     if(delete_f && !debug(debug_depth) && fname && fname[0]) {
-      char cmmd[512];
-      SNprintf(cmmd,512,"rm -f /tmp/%s.* > /dev/null 2>&1",fname);
+      char cmmd[PATH_MAX];
+      SNprintf(cmmd,PATH_MAX,"rm -f /tmp/%s.* > /dev/null 2>&1",fname);
       DebugInfo(4,"executing \"%s\"\n",cmmd);
       int rr=system(cmmd);
     }
@@ -510,7 +517,7 @@ namespace {
       "#define BD_TEST\n"
       "#define body_func\n"
       "#include <public/bodyfuncdefs.h>\n\n"
-      "real   _P[10]={RNG()};\n\n"
+      "real   _P[10]={static_cast<real>(RNG())};\n\n"
       "extern \"C\" {\n"
       "  fieldset "<<ftype<<"(char&_type)\n"
       "  {\n"

@@ -4,7 +4,7 @@
 CC    = gcc
 MPICC = mpicc
 
-TIME = /usr/bin/time -f "%U %S %e %P"
+TIME = /usr/bin/time
 
 include $(NEMOLIB)/makedefs
 
@@ -16,7 +16,7 @@ clean:
 	rm -f $(BINS)
 
 hello1:
-	$(CC) -fopenmp -O3  -o hello1 hellomp.c  -lm
+	$(CC) $(OPENMP_CXXFLAGS) -O3  -o hello1 hellomp.c  -lm $(OPENMP_LINKFLAGS)
 
 hello2:
 	$(CC)          -O3  -o hello2 hellomp.c  -lm
@@ -27,7 +27,7 @@ bench: $(BINS)
 
 
 heated_plate_openmp:
-	$(CC) $(CFLAGS) -fopenmp -o heated_plate_openmp heated_plate_openmp.c $(NEMO_LIBS)
+	$(CC) $(CFLAGS) $(OPENMP_CXXFLAGS) -o heated_plate_openmp heated_plate_openmp.c $(NEMO_LIBS) $(OPENMP_LINKFLAGS)
 
 bench2: heated_plate_openmp
 	$(TIME) ./heated_plate_openmp nprocs=4
@@ -48,7 +48,7 @@ bench4:
 # scaling from https://stackoverflow.com/questions/19780554/what-limits-scaling-in-this-simple-openmp-program
 
 scaling: scaling.c
-	$(CC) scaling.c -std=c99 -fopenmp -O3    -o scaling -lm
+	$(CC) scaling.c -std=c99 $(OPENMP_CXXFLAGS) -O3    -o scaling -lm $(OPENMP_LINKFLAGS)
 
 ONT=1 2 4 8 16
 bench5: scaling
@@ -58,7 +58,7 @@ bench5: scaling
 
 
 quad_openmp: quad_openmp.c
-	gcc -fopenmp quad_openmp.c -o quad_openmp
+	gcc $(OPENMP_CXXFLAGS) quad_openmp.c -o quad_openmp $(OPENMP_LINKFLAGS)
 
 bench6:  quad_openmp
 	@echo OMP_NUM_THREADS ONT=$(ONT)
